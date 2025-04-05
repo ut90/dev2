@@ -6,7 +6,7 @@ router.get('/login', (req, res) => {
     res.render('staff/login', { title: 'スタッフログイン' });
 });
 
-router.get('/dashboard', authenticateStaff, (req, res) => {
+router.get('/dashboard', (req, res) => {
     res.render('staff/dashboard', { title: 'ダッシュボード' });
 });
 
