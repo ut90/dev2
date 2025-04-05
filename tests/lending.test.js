@@ -122,25 +122,25 @@ describe('貸出・返却機能のテスト', () => {
     test('貸出一覧を取得できること', async () => {
       const mockLendings = [
         {
-          id: 1,
-          bookId: 1,
-          bookTitle: '吾輩は猫である',
-          userId: 1,
-          userName: '佐藤花子',
-          lendDate: '2023-04-15',
-          dueDate: '2023-05-15',
-          returnDate: null,
+          lending_id: 1,
+          book_id: 1,
+          title: '吾輩は猫である',
+          user_id: 1,
+          user_name: '佐藤花子',
+          lending_date: '2023-04-15',
+          due_date: '2023-05-15',
+          return_date: null,
           status: '貸出中'
         },
         {
-          id: 2,
-          bookId: 2,
-          bookTitle: 'ノルウェイの森',
-          userId: 2,
-          userName: '田中太郎',
-          lendDate: '2023-04-10',
-          dueDate: '2023-05-10',
-          returnDate: '2023-04-20',
+          lending_id: 2,
+          book_id: 2,
+          title: 'ノルウェイの森',
+          user_id: 2,
+          user_name: '田中太郎',
+          lending_date: '2023-04-10',
+          due_date: '2023-05-10',
+          return_date: '2023-04-20',
           status: '返却済み'
         }
       ];
@@ -162,22 +162,22 @@ describe('貸出・返却機能のテスト', () => {
     test('最近の貸出を取得できること', async () => {
       const mockRecentLendings = [
         {
-          id: 1,
-          bookId: 1,
-          bookTitle: '吾輩は猫である',
-          userId: 1,
-          userName: '佐藤花子',
-          lendDate: '2023-04-15',
-          dueDate: '2023-05-15'
+          lending_id: 1,
+          book_id: 1,
+          title: '吾輩は猫である',
+          user_id: 1,
+          user_name: '佐藤花子',
+          checkout_date: '2023-04-15',
+          due_date: '2023-05-15'
         },
         {
-          id: 2,
-          bookId: 2,
-          bookTitle: 'ノルウェイの森',
-          userId: 2,
-          userName: '田中太郎',
-          lendDate: '2023-04-10',
-          dueDate: '2023-05-10'
+          lending_id: 2,
+          book_id: 2,
+          title: 'ノルウェイの森',
+          user_id: 2,
+          user_name: '田中太郎',
+          checkout_date: '2023-04-10',
+          due_date: '2023-05-10'
         }
       ];
       
@@ -197,14 +197,14 @@ describe('貸出・返却機能のテスト', () => {
     test('延滞書籍を取得できること', async () => {
       const mockOverdueBooks = [
         {
-          id: 1,
-          bookId: 1,
-          bookTitle: '吾輩は猫である',
-          userId: 1,
-          userName: '佐藤花子',
-          lendDate: '2023-03-15',
-          dueDate: '2023-04-15',
-          daysOverdue: 5
+          lending_id: 1,
+          book_id: 1,
+          title: '吾輩は猫である',
+          user_id: 1,
+          user_name: '佐藤花子',
+          lending_date: '2023-03-15',
+          due_date: '2023-04-15',
+          days_overdue: 5
         }
       ];
       
@@ -225,21 +225,21 @@ describe('貸出・返却機能のテスト', () => {
     test('利用者の貸出履歴を取得できること', async () => {
       const mockUserLendingHistory = [
         {
-          id: 1,
-          bookId: 1,
-          bookTitle: '吾輩は猫である',
-          lendDate: '2023-04-15',
-          dueDate: '2023-05-15',
-          returnDate: null,
+          lending_id: 1,
+          book_id: 1,
+          title: '吾輩は猫である',
+          lending_date: '2023-04-15',
+          due_date: '2023-05-15',
+          return_date: null,
           status: '貸出中'
         },
         {
-          id: 3,
-          bookId: 3,
-          bookTitle: '人間失格',
-          lendDate: '2023-03-01',
-          dueDate: '2023-04-01',
-          returnDate: '2023-03-15',
+          lending_id: 3,
+          book_id: 3,
+          title: '人間失格',
+          lending_date: '2023-03-01',
+          due_date: '2023-04-01',
+          return_date: '2023-03-15',
           status: '返却済み'
         }
       ];
