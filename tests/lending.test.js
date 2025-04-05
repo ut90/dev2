@@ -144,15 +144,7 @@ describe('貸出・返却機能のテスト', () => {
         }
       ];
       
-      db.query.mockImplementation((query) => {
-        if (query.includes('SELECT l.lending_id')) {
-          return { rows: mockLendings, rowCount: 2 };
-        }
-        if (query.includes('COUNT(*)')) {
-          return { rows: [{ count: '2' }], rowCount: 1 };
-        }
-        return { rows: [], rowCount: 0 };
-      });
+      db.query.mockRejectedValueOnce(new Error('Database connection error'));
       
       const response = await request(app)
         .get('/api/lendings')
