@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const db = require('../models/db');
+const bcrypt = require('bcrypt');
 const { validToken } = require('./setup');
 
 jest.mock('../models/db', () => ({
@@ -41,6 +42,8 @@ describe('利用者管理機能のテスト', () => {
     });
     
     test('異常系: 必須項目が欠けている場合はエラーになること', async () => {
+      db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      
       const invalidUserData = {
         email: 'user1@example.com',
         phone: '080-1234-5678',
