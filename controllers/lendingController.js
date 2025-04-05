@@ -1,4 +1,4 @@
-ｍconst db = require('../models/db');
+const db = require('../models/db');
 
 exports.getAllLendings = async (req, res) => {
     try {
