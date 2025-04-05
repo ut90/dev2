@@ -1,0 +1,110 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">蔵書詳細</h4>
+                </div>
+                <div class="card-body">
+                    <div id="bookDetail">
+                        <p class="text-center">書籍情報を読み込んでいます...</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="/user/books" class="btn btn-secondary">蔵書検索に戻る</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('userToken');
+    const bookDetailElement = document.getElementById('bookDetail');
+    const bookId = '<%= bookId %>';
+    
+    if (!token) {
+        window.location.href = '/user/login';
+        return;
+    }
+    
+    fetchBookDetail(bookId);
+    
+    async function fetchBookDetail(bookId) {
+        try {
+            const response = await fetch(`/api/public/books/${bookId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('書籍情報の取得に失敗しました');
+            }
+            
+            const book = await response.json();
+            displayBookDetail(book);
+            
+        } catch (error) {
+            console.error('書籍詳細取得エラー:', error);
+            bookDetailElement.innerHTML = `<p class="text-center text-danger">エラーが発生しました: ${error.message}</p>`;
+        }
+    }
+    
+    function displayBookDetail(book) {
+        const status = book.status === '貸出可' ? 
+            '<span class="badge bg-success">貸出可</span>' : 
+            '<span class="badge bg-danger">貸出中</span>';
+        
+        let html = `
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="${book.image_url || '/images/no-image.jpg'}" alt="${book.title}" class="img-fluid rounded">
+                </div>
+                <div class="col-md-8">
+                    <h3>${book.title}</h3>
+                    <p class="text-muted">${book.subtitle || ''}</p>
+                    
+                    <div class="mb-3">
+                        <strong>著者:</strong> ${book.author || '-'}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>出版社:</strong> ${book.publisher || '-'}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>出版年:</strong> ${book.publication_year || '-'}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>ISBN:</strong> ${book.isbn || '-'}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>カテゴリ:</strong> ${book.categories ? book.categories.join(', ') : '-'}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>状態:</strong> ${status}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4>概要</h4>
+                    <p>${book.description || '概要はありません。'}</p>
+                </div>
+            </div>
+        `;
+        
+        bookDetailElement.innerHTML = html;
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

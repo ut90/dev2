@@ -1,0 +1,222 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">蔵書検索</h4>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="title" class="form-label">タイトル</label>
+                                <input type="text" class="form-control" id="title" name="title">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="author" class="form-label">著者</label>
+                                <input type="text" class="form-control" id="author" name="author">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn">
+                            </div>
+                            <div class="col-md-12 mt-3">
+                                <button type="submit" class="btn btn-primary">検索</button>
+                                <button type="reset" class="btn btn-secondary">リセット</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="searchResults">
+                        <p class="text-center">検索条件を入力して検索ボタンを押してください。</p>
+                    </div>
+                    
+                    <div id="pagination" class="mt-3 d-flex justify-content-center">
+                        <!-- ページネーションがここに表示されます -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+        window.location.href = '/user/login';
+        return;
+    }
+    
+    const searchForm = document.getElementById('searchForm');
+    const searchResults = document.getElementById('searchResults');
+    const paginationElement = document.getElementById('pagination');
+    
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const title = document.getElementById('title').value;
+        const author = document.getElementById('author').value;
+        const isbn = document.getElementById('isbn').value;
+        
+        await searchBooks(1, title, author, isbn);
+    });
+    
+    async function searchBooks(page = 1, title = '', author = '', isbn = '') {
+        try {
+            searchResults.innerHTML = '<p class="text-center">検索中...</p>';
+            
+            const params = new URLSearchParams();
+            if (page) params.append('page', page);
+            if (title) params.append('title', title);
+            if (author) params.append('author', author);
+            if (isbn) params.append('isbn', isbn);
+            
+            const response = await fetch(`/api/public/books?${params.toString()}`);
+            
+            if (!response.ok) {
+                throw new Error('検索に失敗しました');
+            }
+            
+            const data = await response.json();
+            
+            if (data.books.length === 0) {
+                searchResults.innerHTML = '<p class="text-center">検索条件に一致する蔵書が見つかりませんでした。</p>';
+                paginationElement.innerHTML = '';
+                return;
+            }
+            
+            displaySearchResults(data.books);
+            displayPagination(data.pagination);
+            
+        } catch (error) {
+            console.error('検索エラー:', error);
+            searchResults.innerHTML = `<p class="text-center text-danger">エラーが発生しました: ${error.message}</p>`;
+            paginationElement.innerHTML = '';
+        }
+    }
+    
+    function displaySearchResults(books) {
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>タイトル</th>
+                            <th>著者</th>
+                            <th>出版社</th>
+                            <th>ISBN</th>
+                            <th>状態</th>
+                            <th>詳細</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        books.forEach(book => {
+            const status = book.status === '貸出可' ? 
+                '<span class="badge bg-success">貸出可</span>' : 
+                '<span class="badge bg-danger">貸出中</span>';
+            
+            html += `
+                <tr>
+                    <td>${book.title}</td>
+                    <td>${book.author || '-'}</td>
+                    <td>${book.publisher || '-'}</td>
+                    <td>${book.isbn || '-'}</td>
+                    <td>${status}</td>
+                    <td>
+                        <a href="/user/books/${book.book_id}" class="btn btn-sm btn-info">詳細</a>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        searchResults.innerHTML = html;
+    }
+    
+    function displayPagination(pagination) {
+        if (!pagination || pagination.totalPages <= 1) {
+            paginationElement.innerHTML = '';
+            return;
+        }
+        
+        let html = '<nav><ul class="pagination">';
+        
+        // 前のページへのリンク
+        if (pagination.currentPage > 1) {
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.currentPage - 1}">前へ</a>
+                </li>
+            `;
+        } else {
+            html += `
+                <li class="page-item disabled">
+                    <span class="page-link">前へ</span>
+                </li>
+            `;
+        }
+        
+        // ページ番号
+        for (let i = 1; i <= pagination.totalPages; i++) {
+            if (i === pagination.currentPage) {
+                html += `
+                    <li class="page-item active">
+                        <span class="page-link">${i}</span>
+                    </li>
+                `;
+            } else {
+                html += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+        }
+        
+        // 次のページへのリンク
+        if (pagination.currentPage < pagination.totalPages) {
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.currentPage + 1}">次へ</a>
+                </li>
+            `;
+        } else {
+            html += `
+                <li class="page-item disabled">
+                    <span class="page-link">次へ</span>
+                </li>
+            `;
+        }
+        
+        html += '</ul></nav>';
+        paginationElement.innerHTML = html;
+        
+        // ページネーションのクリックイベント
+        const pageLinks = paginationElement.querySelectorAll('.page-link');
+        pageLinks.forEach(link => {
+            if (link.dataset.page) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = parseInt(this.dataset.page);
+                    const title = document.getElementById('title').value;
+                    const author = document.getElementById('author').value;
+                    const isbn = document.getElementById('isbn').value;
+                    searchBooks(page, title, author, isbn);
+                });
+            }
+        });
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,129 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">貸出状況</h4>
+                </div>
+                <div class="card-body">
+                    <div id="userInfo" class="mb-4">
+                        <p>ログイン情報を読み込んでいます...</p>
+                    </div>
+                    
+                    <div id="lendingStatus">
+                        <p class="text-center">貸出情報を読み込んでいます...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('userToken');
+    const userInfoElement = document.getElementById('userInfo');
+    const lendingStatusElement = document.getElementById('lendingStatus');
+    
+    if (!token) {
+        window.location.href = '/user/login';
+        return;
+    }
+    
+    // トークンからユーザー情報を取得
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload.id;
+        const userName = payload.name || '利用者';
+        
+        userInfoElement.innerHTML = `
+            <h5>ようこそ、${userName}さん</h5>
+            <p>利用者ID: ${userId}</p>
+        `;
+        
+        // 貸出状況を取得
+        fetchLendingStatus(userId);
+        
+    } catch (error) {
+        console.error('トークン解析エラー:', error);
+        userInfoElement.innerHTML = '<p class="text-danger">ユーザー情報の読み込みに失敗しました。再度ログインしてください。</p>';
+    }
+    
+    async function fetchLendingStatus(userId) {
+        try {
+            const response = await fetch(`/api/public/users/${userId}/lendings`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('貸出情報の取得に失敗しました');
+            }
+            
+            const data = await response.json();
+            
+            if (data.lendings.length === 0) {
+                lendingStatusElement.innerHTML = '<p class="text-center">現在借りている本はありません。</p>';
+                return;
+            }
+            
+            displayLendingStatus(data.lendings);
+            
+        } catch (error) {
+            console.error('貸出状況取得エラー:', error);
+            lendingStatusElement.innerHTML = `<p class="text-center text-danger">エラーが発生しました: ${error.message}</p>`;
+        }
+    }
+    
+    function displayLendingStatus(lendings) {
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>タイトル</th>
+                            <th>著者</th>
+                            <th>貸出日</th>
+                            <th>返却期限</th>
+                            <th>状態</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        const today = new Date();
+        
+        lendings.forEach(lending => {
+            const dueDate = new Date(lending.due_date);
+            const isOverdue = today > dueDate;
+            
+            const status = isOverdue ? 
+                '<span class="badge bg-danger">延滞</span>' : 
+                '<span class="badge bg-success">貸出中</span>';
+            
+            html += `
+                <tr>
+                    <td>${lending.title}</td>
+                    <td>${lending.author || '-'}</td>
+                    <td>${new Date(lending.checkout_date).toLocaleDateString('ja-JP')}</td>
+                    <td>${new Date(lending.due_date).toLocaleDateString('ja-JP')}</td>
+                    <td>${status}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        lendingStatusElement.innerHTML = html;
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,74 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">利用者ホーム</h4>
+                </div>
+                <div class="card-body">
+                    <div id="userInfo">
+                        <p>ログイン情報を読み込んでいます...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">蔵書検索</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>図書館の蔵書を検索できます。</p>
+                            <a href="/user/books" class="btn btn-success">蔵書検索へ</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">貸出状況</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>現在の貸出状況を確認できます。</p>
+                            <a href="/user/lending" class="btn btn-info">貸出状況へ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('userToken');
+    const userInfoElement = document.getElementById('userInfo');
+    
+    if (!token) {
+        window.location.href = '/user/login';
+        return;
+    }
+    
+    // トークンからユーザー情報を取得
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userName = payload.name || '利用者';
+        
+        userInfoElement.innerHTML = `
+            <h5>ようこそ、${userName}さん</h5>
+            <p>利用者ID: ${payload.id}</p>
+            <p>メールアドレス: ${payload.email}</p>
+            <p>利用者タイプ: ${payload.type}</p>
+        `;
+    } catch (error) {
+        console.error('トークン解析エラー:', error);
+        userInfoElement.innerHTML = '<p class="text-danger">ユーザー情報の読み込みに失敗しました。再度ログインしてください。</p>';
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

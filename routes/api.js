@@ -4,7 +4,7 @@ const staffController = require('../controllers/staffController');
 const userController = require('../controllers/userController');
 const bookController = require('../controllers/bookController');
 const lendingController = require('../controllers/lendingController');
-const { authenticateStaff, isAdmin } = require('../middleware/auth');
+const { authenticateStaff, authenticateUser, isAdmin } = require('../middleware/auth');
 
 router.post('/staff/login', staffController.login);
 router.get('/staff/profile', authenticateStaff, staffController.getProfile);
@@ -32,5 +32,9 @@ router.post('/lendings', authenticateStaff, lendingController.createLending);
 router.post('/lendings/:lendingId/return', authenticateStaff, lendingController.returnBook);
 router.get('/lendings/overdue', authenticateStaff, lendingController.getOverdueBooks);
 router.get('/users/:userId/lending-history', authenticateStaff, lendingController.getUserLendingHistory);
+
+router.get('/public/books', bookController.getAllBooks);
+router.get('/public/books/:id', bookController.getBookById);
+router.get('/public/users/:userId/lendings', authenticateUser, lendingController.getUserLendingHistory);
 
 module.exports = router;
