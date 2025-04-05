@@ -1,10 +1,9 @@
 const request = require('supertest');
-const { validToken } = require('./setup');
 const app = require('../app');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const db = require('../models/db');
-require('./setup');
+const { validToken } = require('./setup');
 
 jest.mock('../models/db', () => ({
   query: jest.fn(),
