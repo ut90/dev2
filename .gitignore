@@ -21,6 +21,9 @@ yarn-debug.log
 logs
 *.log
 
+# Test coverage
+coverage/
+
 # Editor directories and files
 .idea
 .vscode
