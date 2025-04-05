@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - 図書館管理システム</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('../partials/staff_header') %>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">ダッシュボード</h2>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <div class="dashboard-icon">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <h3>蔵書管理</h3>
+                        <p>蔵書の登録、検索、編集、削除を行います。</p>
+                        <a href="/staff/books" class="btn btn-primary">蔵書管理へ</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <div class="dashboard-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>利用者管理</h3>
+                        <p>利用者の登録、検索、編集、削除を行います。</p>
+                        <a href="/staff/users" class="btn btn-primary">利用者管理へ</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <div class="dashboard-icon">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <h3>貸出・返却</h3>
+                        <p>蔵書の貸出処理と返却処理を行います。</p>
+                        <a href="/staff/lending" class="btn btn-primary">貸出・返却へ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>最近の貸出</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>タイトル</th>
+                                        <th>利用者</th>
+                                        <th>貸出日</th>
+                                        <th>返却期限</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentLendings">
+                                    <tr>
+                                        <td colspan="4" class="text-center">読み込み中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>返却期限超過</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>タイトル</th>
+                                        <th>利用者</th>
+                                        <th>貸出日</th>
+                                        <th>返却期限</th>
+                                        <th>超過日数</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overdueBooks">
+                                    <tr>
+                                        <td colspan="5" class="text-center">読み込み中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ページ読み込み時に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 認証チェック
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/staff/login';
+                return;
+            }
+            
+            // 最近の貸出を取得
+            fetchRecentLendings();
+            
+            // 返却期限超過の蔵書を取得
+            fetchOverdueBooks();
+        });
+        
+        // 最近の貸出を取得する関数
+        async function fetchRecentLendings() {
+            try {
+                const response = await fetch('/api/lendings/recent', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayRecentLendings(data);
+                } else {
+                    displayError('recentLendings', 4);
+                }
+            } catch (error) {
+                console.error('最近の貸出の取得エラー:', error);
+                displayError('recentLendings', 4);
+            }
+        }
+        
+        // 返却期限超過の蔵書を取得する関数
+        async function fetchOverdueBooks() {
+            try {
+                const response = await fetch('/api/lendings/overdue', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayOverdueBooks(data);
+                } else {
+                    displayError('overdueBooks', 5);
+                }
+            } catch (error) {
+                console.error('返却期限超過の蔵書の取得エラー:', error);
+                displayError('overdueBooks', 5);
+            }
+        }
+        
+        // 最近の貸出を表示する関数
+        function displayRecentLendings(lendings) {
+            const tbody = document.getElementById('recentLendings');
+            
+            if (lendings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">最近の貸出はありません</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            lendings.forEach(lending => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${lending.title}</td>
+                    <td>${lending.userName}</td>
+                    <td>${formatDate(lending.checkoutDate)}</td>
+                    <td>${formatDate(lending.dueDate)}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 返却期限超過の蔵書を表示する関数
+        function displayOverdueBooks(books) {
+            const tbody = document.getElementById('overdueBooks');
+            
+            if (books.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">返却期限超過の蔵書はありません</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            books.forEach(book => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${book.title}</td>
+                    <td>${book.userName}</td>
+                    <td>${formatDate(book.checkoutDate)}</td>
+                    <td>${formatDate(book.dueDate)}</td>
+                    <td>${book.daysOverdue}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // エラーメッセージを表示する関数
+        function displayError(elementId, colspan) {
+            const tbody = document.getElementById(elementId);
+            tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-danger">データの取得に失敗しました</td></tr>`;
+        }
+        
+        // 日付をフォーマットする関数
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ja-JP');
+        }
+    </script>
+</body>
+</html>
