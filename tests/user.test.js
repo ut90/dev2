@@ -1,4 +1,5 @@
 const request = require('supertest');
+const { validToken } = require('./setup');
 const app = require('../app');
 const db = require('../models/db');
 require('./setup');
@@ -28,7 +29,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/users')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(userData);
       
       expect(response.statusCode).toBe(201);
@@ -47,7 +48,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/users')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(invalidUserData);
       
       expect(response.statusCode).toBe(400);
@@ -68,7 +69,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/users')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(userData);
       
       expect(response.statusCode).toBe(409);
@@ -101,7 +102,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/users')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(2);
@@ -126,7 +127,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/users?name=佐藤')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(1);
@@ -151,7 +152,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/users/1')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('name', '佐藤花子');
@@ -163,7 +164,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/users/999')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(404);
       expect(response.body).toHaveProperty('message');
@@ -182,7 +183,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .put('/api/users/1')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(updateData);
       
       expect(response.statusCode).toBe(200);
@@ -197,7 +198,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .delete('/api/users/1')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('message');
@@ -215,7 +216,7 @@ describe('利用者管理機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/users/1/change-password')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(passwordData);
       
       expect(response.statusCode).toBe(200);

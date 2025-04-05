@@ -1,4 +1,5 @@
 const request = require('supertest');
+const { validToken } = require('./setup');
 const app = require('../app');
 const db = require('../models/db');
 require('./setup');
@@ -27,7 +28,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
       expect(response.statusCode).toBe(201);
@@ -47,7 +48,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
       expect(response.statusCode).toBe(400);
@@ -65,7 +66,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
       expect(response.statusCode).toBe(404);
@@ -84,7 +85,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
       expect(response.statusCode).toBe(404);
@@ -100,7 +101,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings/1/return')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('message');
@@ -111,7 +112,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .post('/api/lendings/999/return')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(404);
       expect(response.body).toHaveProperty('message');
@@ -149,7 +150,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/lendings')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(2);
@@ -184,7 +185,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/lendings/recent')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(2);
@@ -210,7 +211,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/lendings/overdue')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(1);
@@ -245,7 +246,7 @@ describe('貸出・返却機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/users/1/lending-history')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(2);

@@ -29,9 +29,10 @@ describe('蔵書管理機能のテスト', () => {
         status: '利用可能'
       };
       
+      const { validToken } = require('./setup');
       const response = await request(app)
         .post('/api/books')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(bookData);
       
       expect(response.statusCode).toBe(201);
@@ -51,9 +52,10 @@ describe('蔵書管理機能のテスト', () => {
         status: '利用可能'
       };
       
+      const { validToken } = require('./setup');
       const response = await request(app)
         .post('/api/books')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(invalidBookData);
       
       expect(response.statusCode).toBe(400);
@@ -86,7 +88,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/books')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(2);
@@ -111,7 +113,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/books?title=猫')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(1);
@@ -134,7 +136,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/books?author=村上')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveLength(1);
@@ -161,7 +163,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/books/1')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('title', '吾輩は猫である');
@@ -173,7 +175,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .get('/api/books/999')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(404);
       expect(response.body).toHaveProperty('message');
@@ -192,7 +194,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .put('/api/books/1')
-        .set('Authorization', 'Bearer valid_token')
+        .set('Authorization', `Bearer ${validToken}`)
         .send(updateData);
       
       expect(response.statusCode).toBe(200);
@@ -207,7 +209,7 @@ describe('蔵書管理機能のテスト', () => {
       
       const response = await request(app)
         .delete('/api/books/1')
-        .set('Authorization', 'Bearer valid_token');
+        .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('message');

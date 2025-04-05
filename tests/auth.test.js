@@ -1,4 +1,5 @@
 const request = require('supertest');
+const { validToken } = require('./setup');
 const app = require('../app');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
