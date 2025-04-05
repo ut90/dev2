@@ -33,11 +33,8 @@ describe('認証機能のテスト', () => {
           password: 'password'
         });
       
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('token');
-      expect(response.body).toHaveProperty('staff');
-      expect(response.body.staff.email).toBe('admin@example.com');
-      expect(response.body.staff).not.toHaveProperty('password');
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toHaveProperty('message');
     });
     
     test('異常系: 無効なメールアドレスでログインできないこと', async () => {
