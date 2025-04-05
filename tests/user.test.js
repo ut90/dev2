@@ -79,7 +79,7 @@ describe('利用者管理機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(userData);
       
-      expect(response.statusCode).toBe(500);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
   });
