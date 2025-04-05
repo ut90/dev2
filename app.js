@@ -17,34 +17,13 @@ app.set('views', path.join(__dirname, 'views'));
 const db = require('./models/db');
 
 const apiRoutes = require('./routes/api');
+const staffRoutes = require('./routes/staff');
+
 app.use('/api', apiRoutes);
+app.use('/staff', staffRoutes);
 
 app.get('/', (req, res) => {
     res.render('index', { title: '図書館管理システム' });
-});
-
-app.get('/staff/login', (req, res) => {
-    res.render('staff/login', { title: 'スタッフログイン' });
-});
-
-app.get('/staff/dashboard', (req, res) => {
-    res.render('staff/dashboard', { title: 'ダッシュボード' });
-});
-
-app.get('/staff/books', (req, res) => {
-    res.render('staff/book_management', { title: '蔵書管理' });
-});
-
-app.get('/staff/books/register', (req, res) => {
-    res.render('staff/book_registration', { title: '蔵書登録' });
-});
-
-app.get('/staff/users', (req, res) => {
-    res.render('staff/user_management', { title: '利用者管理' });
-});
-
-app.get('/staff/lending', (req, res) => {
-    res.render('staff/lending', { title: '貸出・返却' });
 });
 
 app.get('/user/login', (req, res) => {
