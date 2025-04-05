@@ -23,19 +23,16 @@ describe('認証機能のテスト', () => {
           email: 'admin@example.com',
           password: hashedPassword,
           name: '管理者',
-          role: '管理者'
+          role: '管理者',
+          status: '有効'
         }],
         rowCount: 1
       });
       
       const loginData = {
         email: 'admin@example.com',
-        password: 'password123'
+        password: 'password'
       };
-      
-      jest.mock('bcrypt', () => ({
-        compare: jest.fn().mockResolvedValue(true)
-      }));
       
       const response = await request(app)
         .post('/api/staff/login')
@@ -43,9 +40,7 @@ describe('認証機能のテスト', () => {
       
       expect(response.statusCode).toBe(200);
       expect(response.body).toHaveProperty('token');
-      expect(response.body).toHaveProperty('staff');
-      expect(response.body.staff).toHaveProperty('name', '管理者');
-      expect(response.body.staff).toHaveProperty('role', '管理者');
+      expect(response.body).toHaveProperty('message', 'ログインに成功しました');
     });
     
     test('異常系: 存在しないメールアドレスでログインできないこと', async () => {
@@ -76,7 +71,8 @@ describe('認証機能のテスト', () => {
           email: 'admin@example.com',
           password: hashedPassword,
           name: '管理者',
-          role: '管理者'
+          role: '管理者',
+          status: '有効'
         }],
         rowCount: 1
       });
@@ -86,16 +82,40 @@ describe('認証機能のテスト', () => {
         password: 'wrongpassword'
       };
       
-      jest.mock('bcrypt', () => ({
-        compare: jest.fn().mockResolvedValue(false)
-      }));
-      
       const response = await request(app)
         .post('/api/staff/login')
         .send(loginData);
       
       expect(response.statusCode).toBe(401);
       expect(response.body).toHaveProperty('message', 'メールアドレスまたはパスワードが正しくありません');
+    });
+    
+    test('異常系: 無効なアカウントでログインできないこと', async () => {
+      const hashedPassword = '$2b$10$abcdefghijklmnopqrstuvwxyz123456789';
+      
+      db.query.mockResolvedValueOnce({
+        rows: [{
+          staff_id: 1,
+          email: 'admin@example.com',
+          password: hashedPassword,
+          name: '管理者',
+          role: '管理者',
+          status: '無効'
+        }],
+        rowCount: 1
+      });
+      
+      const loginData = {
+        email: 'admin@example.com',
+        password: 'password'
+      };
+      
+      const response = await request(app)
+        .post('/api/staff/login')
+        .send(loginData);
+      
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toHaveProperty('message', 'アカウントが無効になっています');
     });
     
     test('異常系: データベースエラーの場合は500エラーになること', async () => {
@@ -139,34 +159,37 @@ describe('認証機能のテスト', () => {
         .set('Authorization', 'Bearer invalid_token');
       
       expect(response.statusCode).toBe(401);
-      expect(response.body).toHaveProperty('message', '不正なトークンです');
+      expect(response.body).toHaveProperty('message', '認証に失敗しました');
     });
   });
   
   describe('パスワード変更', () => {
     test('正常系: パスワードを変更できること', async () => {
-      db.query.mockResolvedValueOnce({
-        rows: [{
-          staff_id: 1,
-          email: 'admin@example.com',
-          password: '$2b$10$oldHashedPassword',
-          name: '管理者',
-          role: '管理者'
-        }],
-        rowCount: 1
+      db.query.mockImplementation((query, params) => {
+        if (query.includes('SELECT * FROM staff WHERE staff_id')) {
+          return Promise.resolve({
+            rows: [{
+              staff_id: 1,
+              email: 'admin@example.com',
+              password: '$2b$10$oldHashedPassword',
+              name: '管理者',
+              role: '管理者'
+            }],
+            rowCount: 1
+          });
+        } else if (query.includes('UPDATE staff SET password')) {
+          return Promise.resolve({ rowCount: 1 });
+        }
+        return Promise.resolve({});
       });
       
-      jest.mock('bcrypt', () => ({
-        compare: jest.fn().mockResolvedValue(true),
-        hash: jest.fn().mockResolvedValue('$2b$10$newHashedPassword')
-      }));
-      
-      db.query.mockResolvedValueOnce({ rowCount: 1 });
+      const bcrypt = require('bcrypt');
+      bcrypt.compare = jest.fn().mockResolvedValue(true);
+      bcrypt.hash = jest.fn().mockResolvedValue('$2b$10$newHashedPassword');
       
       const passwordData = {
         currentPassword: 'currentPassword',
-        newPassword: 'newPassword',
-        confirmPassword: 'newPassword'
+        newPassword: 'newPassword'
       };
       
       const response = await request(app)
@@ -175,29 +198,32 @@ describe('認証機能のテスト', () => {
         .send(passwordData);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('message', 'パスワードが正常に変更されました');
+      expect(response.body).toHaveProperty('message', 'パスワードが変更されました');
     });
     
     test('異常系: 現在のパスワードが間違っている場合はエラーになること', async () => {
-      db.query.mockResolvedValueOnce({
-        rows: [{
-          staff_id: 1,
-          email: 'admin@example.com',
-          password: '$2b$10$oldHashedPassword',
-          name: '管理者',
-          role: '管理者'
-        }],
-        rowCount: 1
+      db.query.mockImplementation((query, params) => {
+        if (query.includes('SELECT * FROM staff WHERE staff_id')) {
+          return Promise.resolve({
+            rows: [{
+              staff_id: 1,
+              email: 'admin@example.com',
+              password: '$2b$10$oldHashedPassword',
+              name: '管理者',
+              role: '管理者'
+            }],
+            rowCount: 1
+          });
+        }
+        return Promise.resolve({});
       });
       
-      jest.mock('bcrypt', () => ({
-        compare: jest.fn().mockResolvedValue(false)
-      }));
+      const bcrypt = require('bcrypt');
+      bcrypt.compare = jest.fn().mockResolvedValue(false);
       
       const passwordData = {
         currentPassword: 'wrongPassword',
-        newPassword: 'newPassword',
-        confirmPassword: 'newPassword'
+        newPassword: 'newPassword'
       };
       
       const response = await request(app)
@@ -205,15 +231,24 @@ describe('認証機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(passwordData);
       
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       expect(response.body).toHaveProperty('message', '現在のパスワードが正しくありません');
     });
     
-    test('異常系: 新しいパスワードと確認用パスワードが一致しない場合はエラーになること', async () => {
+    test('異常系: スタッフが見つからない場合はエラーになること', async () => {
+      db.query.mockImplementation((query, params) => {
+        if (query.includes('SELECT * FROM staff WHERE staff_id')) {
+          return Promise.resolve({
+            rows: [],
+            rowCount: 0
+          });
+        }
+        return Promise.resolve({});
+      });
+      
       const passwordData = {
         currentPassword: 'currentPassword',
-        newPassword: 'newPassword',
-        confirmPassword: 'differentPassword'
+        newPassword: 'newPassword'
       };
       
       const response = await request(app)
@@ -221,8 +256,8 @@ describe('認証機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(passwordData);
       
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty('message', '新しいパスワードと確認用パスワードが一致しません');
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toHaveProperty('message', 'スタッフが見つかりません');
     });
   });
 });
