@@ -60,8 +60,22 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('ログイン成功:', data);
                     localStorage.setItem('token', data.token);
-                    window.location.href = '/staff/dashboard';
+                    
+                    // 認証ヘッダーを設定してダッシュボードにリダイレクト
+                    const dashboardResponse = await fetch('/staff/dashboard', {
+                        headers: {
+                            'Authorization': `Bearer ${data.token}`
+                        }
+                    });
+                    
+                    if (dashboardResponse.ok) {
+                        window.location.href = '/staff/dashboard';
+                    } else {
+                        console.error('ダッシュボードへのアクセスに失敗しました');
+                        document.getElementById('loginError').classList.remove('d-none');
+                    }
                 } else {
                     document.getElementById('loginError').classList.remove('d-none');
                 }
