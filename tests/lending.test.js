@@ -152,8 +152,9 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(2);
-      expect(response.body[0]).toHaveProperty('bookTitle', '吾輩は猫である');
+      expect(response.body).toHaveProperty('lendings');
+      expect(response.body.lendings).toHaveLength(2);
+      expect(response.body.lendings[0]).toHaveProperty('title', '吾輩は猫である');
     });
   });
   
@@ -187,7 +188,8 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(2);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(2);
     });
   });
   
@@ -213,8 +215,9 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(1);
-      expect(response.body[0]).toHaveProperty('daysOverdue');
+      expect(response.body).toHaveProperty('overdueBooks');
+      expect(response.body.overdueBooks).toHaveLength(1);
+      expect(response.body.overdueBooks[0]).toHaveProperty('days_overdue');
     });
   });
   
@@ -248,7 +251,8 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(2);
+      expect(response.body).toHaveProperty('lendingHistory');
+      expect(response.body.lendingHistory).toHaveLength(2);
     });
   });
 });
