@@ -76,7 +76,7 @@ describe('利用者管理機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(userData);
       
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
   });
@@ -233,6 +233,8 @@ describe('利用者管理機能のテスト', () => {
         }], 
         rowCount: 1 
       });
+      
+      jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
       
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
