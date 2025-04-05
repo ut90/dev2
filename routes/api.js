@@ -3,6 +3,7 @@ const router = express.Router();
 const staffController = require('../controllers/staffController');
 const userController = require('../controllers/userController');
 const bookController = require('../controllers/bookController');
+const lendingController = require('../controllers/lendingController');
 const { authenticateStaff, isAdmin } = require('../middleware/auth');
 
 router.post('/staff/login', staffController.login);
@@ -22,5 +23,12 @@ router.post('/books', authenticateStaff, bookController.createBook);
 router.put('/books/:id', authenticateStaff, bookController.updateBook);
 router.delete('/books/:id', authenticateStaff, bookController.deleteBook);
 router.get('/categories', authenticateStaff, bookController.getCategories);
+
+router.get('/lendings', authenticateStaff, lendingController.getAllLendings);
+router.get('/lendings/:id', authenticateStaff, lendingController.getLendingById);
+router.post('/lendings', authenticateStaff, lendingController.createLending);
+router.post('/lendings/:lendingId/return', authenticateStaff, lendingController.returnBook);
+router.get('/lendings/overdue', authenticateStaff, lendingController.getOverdueBooks);
+router.get('/users/:userId/lending-history', authenticateStaff, lendingController.getUserLendingHistory);
 
 module.exports = router;
