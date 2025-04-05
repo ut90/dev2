@@ -1,0 +1,71 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">利用者ログイン</h4>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="alert alert-danger d-none" id="loginError"></div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">メールアドレス</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">パスワード</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">ログイン</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="/" class="text-decoration-none">トップページに戻る</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorElement = document.getElementById('loginError');
+    
+    try {
+        const response = await fetch('/api/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            localStorage.setItem('userToken', data.token);
+            window.location.href = '/user/home';
+        } else {
+            errorElement.textContent = data.message || 'ログインに失敗しました';
+            errorElement.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('ログインエラー:', error);
+        errorElement.textContent = 'サーバーエラーが発生しました';
+        errorElement.classList.remove('d-none');
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>
