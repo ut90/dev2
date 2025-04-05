@@ -1,5 +1,53 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = require('../models/db');
+
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const result = await db.query(
+            'SELECT * FROM users WHERE email = $1',
+            [email]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ message: 'メールアドレスまたはパスワードが正しくありません' });
+        }
+        
+        const user = result.rows[0];
+        
+        if (user.status !== '有効') {
+            return res.status(401).json({ message: 'アカウントが無効になっています' });
+        }
+        
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'メールアドレスまたはパスワードが正しくありません' });
+        }
+        
+        const token = jwt.sign(
+            { id: user.user_id, email: user.email, type: user.user_type },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        
+        res.status(200).json({
+            message: 'ログインに成功しました',
+            token,
+            user: {
+                id: user.user_id,
+                name: user.name,
+                email: user.email,
+                type: user.user_type
+            }
+        });
+    } catch (error) {
+        console.error('ログインエラー:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+};
 
 exports.getAllUsers = async (req, res) => {
     try {

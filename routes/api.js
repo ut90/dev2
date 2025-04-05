@@ -10,6 +10,8 @@ router.post('/staff/login', staffController.login);
 router.get('/staff/profile', authenticateStaff, staffController.getProfile);
 router.post('/staff/change-password', authenticateStaff, staffController.changePassword);
 
+router.post('/users/login', userController.login);
+
 router.get('/users', authenticateStaff, userController.getAllUsers);
 router.get('/users/:id', authenticateStaff, userController.getUserById);
 router.post('/users', authenticateStaff, userController.createUser);
