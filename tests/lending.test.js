@@ -14,9 +14,9 @@ describe('貸出・返却機能のテスト', () => {
 
   describe('貸出処理', () => {
     test('正常系: 有効なデータで貸出処理ができること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, name: '佐藤花子' }], rowCount: 1 });
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, title: '吾輩は猫である', status: '利用可能' }], rowCount: 1 });
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1, name: '佐藤花子' }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ book_id: 1, title: '吾輩は猫である', status: '利用可能' }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ lending_id: 1 }], rowCount: 1 });
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
       const lendingData = {
@@ -36,8 +36,8 @@ describe('貸出・返却機能のテスト', () => {
     });
     
     test('異常系: 貸出中の蔵書は貸出できないこと', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, name: '佐藤花子' }], rowCount: 1 });
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, title: '吾輩は猫である', status: '貸出中' }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1, name: '佐藤花子' }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ book_id: 1, title: '吾輩は猫である', status: '貸出中' }], rowCount: 1 });
       
       const lendingData = {
         userId: 1,
@@ -68,12 +68,12 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
-      expect(response.statusCode).toBe(500);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     
     test('異常系: 存在しない蔵書IDの場合はエラーになること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, name: '佐藤花子' }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1, name: '佐藤花子' }], rowCount: 1 });
       db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
       
       const lendingData = {
@@ -87,14 +87,14 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
-      expect(response.statusCode).toBe(500);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
   });
   
   describe('返却処理', () => {
     test('正常系: 貸出中の蔵書を返却できること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1, bookId: 1, userId: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ lending_id: 1, book_id: 1, user_id: 1 }], rowCount: 1 });
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
@@ -113,7 +113,7 @@ describe('貸出・返却機能のテスト', () => {
         .post('/api/lendings/999/return')
         .set('Authorization', `Bearer ${validToken}`);
       
-      expect(response.statusCode).toBe(500);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
   });
@@ -145,7 +145,12 @@ describe('貸出・返却機能のテスト', () => {
         }
       ];
       
-      db.query.mockResolvedValueOnce({ rows: mockLendings, rowCount: 2 });
+      db.query.mockImplementation((query) => {
+        if (query.includes('SELECT l.lending_id')) {
+          return { rows: mockLendings, rowCount: 2 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
       
       const response = await request(app)
         .get('/api/lendings')
@@ -244,7 +249,12 @@ describe('貸出・返却機能のテスト', () => {
         }
       ];
       
-      db.query.mockResolvedValueOnce({ rows: mockUserLendingHistory, rowCount: 2 });
+      db.query.mockImplementation((query) => {
+        if (query.includes('SELECT l.lending_id')) {
+          return { rows: mockUserLendingHistory, rowCount: 2 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
       
       const response = await request(app)
         .get('/api/users/1/lending-history')
