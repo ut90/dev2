@@ -25,10 +25,11 @@ router.delete('/books/:id', authenticateStaff, bookController.deleteBook);
 router.get('/categories', authenticateStaff, bookController.getCategories);
 
 router.get('/lendings', authenticateStaff, lendingController.getAllLendings);
+router.get('/lendings/recent', authenticateStaff, lendingController.getRecentLendings);
+router.get('/lendings/overdue', authenticateStaff, lendingController.getOverdueBooks);
 router.get('/lendings/:id', authenticateStaff, lendingController.getLendingById);
 router.post('/lendings', authenticateStaff, lendingController.createLending);
 router.post('/lendings/:lendingId/return', authenticateStaff, lendingController.returnBook);
-router.get('/lendings/overdue', authenticateStaff, lendingController.getOverdueBooks);
 router.get('/users/:userId/lending-history', authenticateStaff, lendingController.getUserLendingHistory);
 
 module.exports = router;

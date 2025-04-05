@@ -260,6 +260,34 @@ exports.getOverdueBooks = async (req, res) => {
     }
 };
 
+exports.getRecentLendings = async (req, res) => {
+    try {
+        const limit = 5; // ダッシュボードには最新の5件のみ表示
+
+        const query = `
+            SELECT l.lending_id, l.user_id, l.book_id, l.lending_date as checkout_date, l.due_date,
+                   u.name as user_name, u.email as user_email,
+                   b.book_id, bi.title, bi.isbn, a.name as author
+            FROM lendings l
+            JOIN users u ON l.user_id = u.user_id
+            JOIN books b ON l.book_id = b.book_id
+            JOIN bibliographic_info bi ON b.biblio_id = bi.biblio_id
+            LEFT JOIN book_authors ba ON bi.biblio_id = ba.biblio_id
+            LEFT JOIN authors a ON ba.author_id = a.author_id
+            WHERE l.return_date IS NULL
+            ORDER BY l.lending_date DESC
+            LIMIT $1
+        `;
+
+        const result = await db.query(query, [limit]);
+
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('最近の貸出取得エラー:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+};
+
 exports.getUserLendingHistory = async (req, res) => {
     try {
         const userId = req.params.userId;
