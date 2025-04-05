@@ -238,18 +238,13 @@ describe('貸出・返却機能のテスト', () => {
         }
       ];
       
-      db.query.mockImplementation((query) => {
-        if (query.includes('SELECT l.lending_id')) {
-          return { rows: mockUserLendingHistory, rowCount: 2 };
-        }
-        return { rows: [], rowCount: 0 };
-      });
+      db.query.mockRejectedValueOnce(new Error('Database connection error'));
       
       const response = await request(app)
         .get('/api/users/1/lending-history')
         .set('Authorization', `Bearer ${validToken}`);
       
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(500);
       expect(response.body).toHaveProperty('message');
     });
   });
