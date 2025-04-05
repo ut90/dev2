@@ -15,7 +15,10 @@ describe('利用者管理機能のテスト', () => {
   describe('利用者登録', () => {
     test('正常系: 有効なデータで利用者を登録できること', async () => {
       const mockUserId = 1;
-      db.query.mockResolvedValueOnce({ rows: [{ id: mockUserId }], rowCount: 1 });
+      
+      db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: mockUserId }], rowCount: 1 });
       
       const userData = {
         name: '佐藤花子',
@@ -32,7 +35,7 @@ describe('利用者管理機能のテスト', () => {
         .send(userData);
       
       expect(response.statusCode).toBe(201);
-      expect(response.body).toHaveProperty('id', mockUserId);
+      expect(response.body).toHaveProperty('userId', mockUserId);
       expect(response.body).toHaveProperty('message');
     });
     
@@ -55,7 +58,7 @@ describe('利用者管理機能のテスト', () => {
     });
     
     test('異常系: メールアドレスが重複している場合はエラーになること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }], rowCount: 1 });
       
       const userData = {
         name: '佐藤花子',
@@ -80,22 +83,26 @@ describe('利用者管理機能のテスト', () => {
     test('利用者一覧を取得できること', async () => {
       const mockUsers = [
         {
-          id: 1,
+          user_id: 1,
           name: '佐藤花子',
           email: 'user1@example.com',
           phone: '080-1234-5678',
-          memberType: '一般',
-          status: '有効'
+          member_type: '一般',
+          status: '有効',
+          registration_date: '2023-01-01'
         },
         {
-          id: 2,
+          user_id: 2,
           name: '田中太郎',
           email: 'user2@example.com',
           phone: '090-8765-4321',
-          memberType: '学生',
-          status: '有効'
+          member_type: '学生',
+          status: '有効',
+          registration_date: '2023-02-01'
         }
       ];
+      
+      db.query.mockResolvedValueOnce({ rows: [{ count: '2' }], rowCount: 1 });
       
       db.query.mockResolvedValueOnce({ rows: mockUsers, rowCount: 2 });
       
@@ -104,8 +111,9 @@ describe('利用者管理機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(2);
-      expect(response.body[0]).toHaveProperty('name', '佐藤花子');
+      expect(response.body).toHaveProperty('users');
+      expect(response.body.users).toHaveLength(2);
+      expect(response.body.users[0]).toHaveProperty('name', '佐藤花子');
     });
   });
   
@@ -113,14 +121,17 @@ describe('利用者管理機能のテスト', () => {
     test('名前で利用者を検索できること', async () => {
       const mockUsers = [
         {
-          id: 1,
+          user_id: 1,
           name: '佐藤花子',
           email: 'user1@example.com',
           phone: '080-1234-5678',
-          memberType: '一般',
-          status: '有効'
+          member_type: '一般',
+          status: '有効',
+          registration_date: '2023-01-01'
         }
       ];
+      
+      db.query.mockResolvedValueOnce({ rows: [{ count: '1' }], rowCount: 1 });
       
       db.query.mockResolvedValueOnce({ rows: mockUsers, rowCount: 1 });
       
@@ -129,22 +140,23 @@ describe('利用者管理機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveLength(1);
-      expect(response.body[0]).toHaveProperty('name', '佐藤花子');
+      expect(response.body).toHaveProperty('users');
+      expect(response.body.users).toHaveLength(1);
+      expect(response.body.users[0]).toHaveProperty('name', '佐藤花子');
     });
   });
   
   describe('利用者詳細取得', () => {
     test('IDで利用者詳細を取得できること', async () => {
       const mockUser = {
-        id: 1,
+        user_id: 1,
         name: '佐藤花子',
         email: 'user1@example.com',
         phone: '080-1234-5678',
         address: '東京都新宿区新宿1-1-1',
-        memberType: '一般',
+        member_type: '一般',
         status: '有効',
-        registrationDate: '2023-01-01'
+        registration_date: '2023-01-01'
       };
       
       db.query.mockResolvedValueOnce({ rows: [mockUser], rowCount: 1 });
@@ -172,8 +184,11 @@ describe('利用者管理機能のテスト', () => {
   
   describe('利用者更新', () => {
     test('利用者情報を更新できること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }], rowCount: 1 });
+      
+      db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      
+      db.query.mockResolvedValueOnce({ rowCount: 1 });
       
       const updateData = {
         phone: '090-1111-2222',
@@ -192,7 +207,10 @@ describe('利用者管理機能のテスト', () => {
   
   describe('利用者削除', () => {
     test('利用者を削除できること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }], rowCount: 1 });
+      
+      db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
       const response = await request(app)
@@ -206,7 +224,8 @@ describe('利用者管理機能のテスト', () => {
   
   describe('パスワード変更', () => {
     test('利用者のパスワードを変更できること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }], rowCount: 1 });
+      
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
       const passwordData = {
