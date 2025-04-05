@@ -64,6 +64,12 @@ describe('蔵書管理機能のテスト', () => {
         if (query.includes('SELECT * FROM books')) {
           return { rows: [], rowCount: 0 };
         }
+        if (query.includes('SELECT * FROM authors')) {
+          return { rows: [{ author_id: 1 }], rowCount: 1 };
+        }
+        if (query.includes('SELECT * FROM categories')) {
+          return { rows: [{ category_id: 1 }], rowCount: 1 };
+        }
         return { rows: [], rowCount: 0 };
       });
       
