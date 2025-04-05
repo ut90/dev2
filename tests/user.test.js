@@ -20,7 +20,10 @@ describe('利用者管理機能のテスト', () => {
       
       db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
       
-      db.query.mockResolvedValueOnce({ rows: [{ user_id: mockUserId }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ 
+        rows: [{ user_id: mockUserId }], 
+        rowCount: 1 
+      });
       
       const userData = {
         name: '佐藤花子',
