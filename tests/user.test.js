@@ -11,6 +11,7 @@ jest.mock('../models/db', () => ({
 describe('利用者管理機能のテスト', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve('hashed_password_mock'));
   });
 
   describe('利用者登録', () => {
