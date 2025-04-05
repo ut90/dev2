@@ -60,9 +60,12 @@ describe('蔵書管理機能のテスト', () => {
     });
     
     test('異常系: 必須項目が欠けている場合はエラーになること', async () => {
-      db.query.mockResolvedValueOnce({});
-      
-      db.query.mockResolvedValueOnce({});
+      db.query.mockImplementation((query, params) => {
+        if (query.includes('SELECT * FROM books')) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      });
       
       const invalidBookData = {
         isbn: '9784167158057',
