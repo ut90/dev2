@@ -26,7 +26,8 @@ describe('利用者管理機能のテスト', () => {
         phone: '080-1234-5678',
         address: '東京都新宿区新宿1-1-1',
         memberType: '一般',
-        status: '有効'
+        status: '有効',
+        password: 'password123' // Add password to fix bcrypt error
       };
       
       const response = await request(app)
@@ -66,7 +67,8 @@ describe('利用者管理機能のテスト', () => {
         phone: '080-1234-5678',
         address: '東京都新宿区新宿1-1-1',
         memberType: '一般',
-        status: '有効'
+        status: '有効',
+        password: 'password123' // Add password to fix bcrypt error
       };
       
       const response = await request(app)
@@ -224,11 +226,18 @@ describe('利用者管理機能のテスト', () => {
   
   describe('パスワード変更', () => {
     test('利用者のパスワードを変更できること', async () => {
-      db.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }], rowCount: 1 });
+      db.query.mockResolvedValueOnce({ 
+        rows: [{ 
+          user_id: 1, 
+          password: '$2b$10$abcdefghijklmnopqrstuv' // Mock hashed password for bcrypt.compare
+        }], 
+        rowCount: 1 
+      });
       
       db.query.mockResolvedValueOnce({ rowCount: 1 });
       
       const passwordData = {
+        currentPassword: 'current_password',
         newPassword: 'new_password'
       };
       
