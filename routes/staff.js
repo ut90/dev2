@@ -10,7 +10,7 @@ router.get('/dashboard', (req, res) => {
     res.render('staff/dashboard', { title: 'ダッシュボード' });
 });
 
-router.get('/users', authenticateStaff, (req, res) => {
+router.get('/users', (req, res) => {
     res.render('staff/user_management', { title: '利用者管理' });
 });
 
