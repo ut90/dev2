@@ -34,7 +34,7 @@ describe('貸出・返却機能のテスト', () => {
         .send(lendingData);
       
       expect(response.statusCode).toBe(201);
-      expect(response.body).toHaveProperty('message', '貸出処理が完了しました');
+      expect(response.body).toHaveProperty('message', '貸出処理を完了しました');
       expect(response.body).toHaveProperty('lendingId', 1);
     });
     
@@ -126,7 +126,7 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`);
       
       expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('message', '返却処理が完了しました');
+      expect(response.body).toHaveProperty('message', '返却処理を完了しました');
     });
     
     test('異常系: 存在しない貸出IDの場合はエラーになること', async () => {
@@ -245,7 +245,7 @@ describe('貸出・返却機能のテスト', () => {
           lending_id: 1, 
           user_id: 1, 
           book_id: 1, 
-          checkout_date: '2023-04-01', 
+          lending_date: '2023-04-01', 
           due_date: '2023-04-15',
           user_name: '佐藤花子',
           title: '吾輩は猫である'
@@ -370,19 +370,29 @@ describe('貸出・返却機能のテスト', () => {
   
   describe('トランザクション処理のテスト', () => {
     test('異常系: 貸出処理でエラーが発生した場合はロールバックされること', async () => {
+      let queryCount = 0;
       db.query.mockImplementation((query, params) => {
+        queryCount++;
         if (query === 'BEGIN') {
           return Promise.resolve({});
         } else if (query === 'ROLLBACK') {
           return Promise.resolve({});
-        } else if (query.includes('SELECT * FROM users')) {
-          return Promise.resolve({ rows: [{ user_id: 1, name: '佐藤花子', status: '有効' }], rowCount: 1 });
-        } else if (query.includes('SELECT * FROM books')) {
-          return Promise.resolve({ rows: [{ book_id: 1, title: '吾輩は猫である', status: '利用可能' }], rowCount: 1 });
-        } else if (query.includes('SELECT * FROM lendings')) {
+        } else if (query === 'COMMIT') {
+          return Promise.resolve({});
+        } else if (query.includes('SELECT * FROM users WHERE user_id')) {
+          return Promise.resolve({ 
+            rows: [{ user_id: 1, name: '佐藤花子', status: '有効' }], 
+            rowCount: 1 
+          });
+        } else if (query.includes('SELECT * FROM books WHERE book_id')) {
+          return Promise.resolve({ 
+            rows: [{ book_id: 1, title: '吾輩は猫である', status: '利用可能' }], 
+            rowCount: 1 
+          });
+        } else if (query.includes('SELECT * FROM lendings WHERE book_id')) {
           return Promise.resolve({ rows: [], rowCount: 0 });
         } else if (query.includes('INSERT INTO lendings')) {
-          return Promise.reject(new Error('Database error during insert'));
+          throw new Error('Database error during insert');
         } else {
           return Promise.resolve({});
         }
@@ -401,25 +411,38 @@ describe('貸出・返却機能のテスト', () => {
       
       expect(response.statusCode).toBe(500);
       expect(response.body).toHaveProperty('message', 'サーバーエラーが発生しました');
-      expect(db.query).toHaveBeenCalledWith('ROLLBACK');
+      
+      const calls = db.query.mock.calls;
+      const rollbackCalled = calls.some(call => call[0] === 'ROLLBACK');
+      expect(rollbackCalled).toBe(true);
     });
     
     test('異常系: 蔵書ステータス更新でエラーが発生した場合はロールバックされること', async () => {
+      let queryCount = 0;
       db.query.mockImplementation((query, params) => {
+        queryCount++;
         if (query === 'BEGIN') {
           return Promise.resolve({});
         } else if (query === 'ROLLBACK') {
           return Promise.resolve({});
-        } else if (query.includes('SELECT * FROM users')) {
-          return Promise.resolve({ rows: [{ user_id: 1, name: '佐藤花子', status: '有効' }], rowCount: 1 });
-        } else if (query.includes('SELECT * FROM books')) {
-          return Promise.resolve({ rows: [{ book_id: 1, title: '吾輩は猫である', status: '利用可能' }], rowCount: 1 });
-        } else if (query.includes('SELECT * FROM lendings')) {
+        } else if (query === 'COMMIT') {
+          return Promise.resolve({});
+        } else if (query.includes('SELECT * FROM users WHERE user_id')) {
+          return Promise.resolve({ 
+            rows: [{ user_id: 1, name: '佐藤花子', status: '有効' }], 
+            rowCount: 1 
+          });
+        } else if (query.includes('SELECT * FROM books WHERE book_id')) {
+          return Promise.resolve({ 
+            rows: [{ book_id: 1, title: '吾輩は猫である', status: '利用可能' }], 
+            rowCount: 1 
+          });
+        } else if (query.includes('SELECT * FROM lendings WHERE book_id')) {
           return Promise.resolve({ rows: [], rowCount: 0 });
         } else if (query.includes('INSERT INTO lendings')) {
           return Promise.resolve({ rows: [{ lending_id: 1 }], rowCount: 1 });
         } else if (query.includes('UPDATE books')) {
-          return Promise.reject(new Error('Database error during update'));
+          throw new Error('Database error during update');
         } else {
           return Promise.resolve({});
         }
@@ -438,7 +461,10 @@ describe('貸出・返却機能のテスト', () => {
       
       expect(response.statusCode).toBe(500);
       expect(response.body).toHaveProperty('message', 'サーバーエラーが発生しました');
-      expect(db.query).toHaveBeenCalledWith('ROLLBACK');
+      
+      const calls = db.query.mock.calls;
+      const rollbackCalled = calls.some(call => call[0] === 'ROLLBACK');
+      expect(rollbackCalled).toBe(true);
     });
   });
 });

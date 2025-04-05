@@ -152,7 +152,7 @@ exports.deleteUser = async (req, res) => {
         }
         
         const lendingCheckResult = await db.query(
-            'SELECT * FROM lendings WHERE user_id = $1 AND returned_at IS NULL',
+            'SELECT * FROM lendings WHERE user_id = $1 AND return_date IS NULL',
             [userId]
         );
         
