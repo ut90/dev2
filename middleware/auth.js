@@ -5,6 +5,9 @@ exports.authenticateStaff = (req, res, next) => {
         const authHeader = req.headers.authorization;
         
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            if (req.originalUrl.startsWith('/staff') && !req.originalUrl.startsWith('/staff/login')) {
+                return res.redirect('/staff/login');
+            }
             return res.status(401).json({ message: '認証が必要です' });
         }
         
@@ -17,6 +20,11 @@ exports.authenticateStaff = (req, res, next) => {
         next();
     } catch (error) {
         console.error('認証エラー:', error);
+        
+        if (req.originalUrl.startsWith('/staff') && !req.originalUrl.startsWith('/staff/login')) {
+            return res.redirect('/staff/login');
+        }
+        
         res.status(401).json({ message: '認証に失敗しました' });
     }
 };
