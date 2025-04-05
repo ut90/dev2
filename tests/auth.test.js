@@ -3,6 +3,7 @@ const app = require('../app');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const db = require('../models/db');
+require('./setup');
 
 jest.mock('../models/db', () => ({
   query: jest.fn(),

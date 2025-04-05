@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const db = require('../models/db');
+require('./setup');
 
 jest.mock('../models/db', () => ({
   query: jest.fn(),
