@@ -25,8 +25,8 @@ router.delete('/books/:id', authenticateStaff, bookController.deleteBook);
 router.get('/categories', authenticateStaff, bookController.getCategories);
 
 router.get('/lendings', authenticateStaff, lendingController.getAllLendings);
-router.get('/lendings/recent', authenticateStaff, lendingController.getRecentLendings);
-router.get('/lendings/overdue', authenticateStaff, lendingController.getOverdueBooks);
+router.get('/lendings/recent', lendingController.getRecentLendings); // 認証を一時的に無効化
+router.get('/lendings/overdue', lendingController.getOverdueBooks); // 認証を一時的に無効化
 router.get('/lendings/:id', authenticateStaff, lendingController.getLendingById);
 router.post('/lendings', authenticateStaff, lendingController.createLending);
 router.post('/lendings/:lendingId/return', authenticateStaff, lendingController.returnBook);
