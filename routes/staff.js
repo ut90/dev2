@@ -14,15 +14,15 @@ router.get('/users', authenticateStaff, (req, res) => {
     res.render('staff/user_management', { title: '利用者管理' });
 });
 
-router.get('/books', authenticateStaff, (req, res) => {
+router.get('/books', (req, res) => {
     res.render('staff/book_management', { title: '蔵書管理' });
 });
 
-router.get('/books/register', authenticateStaff, (req, res) => {
+router.get('/books/register', (req, res) => {
     res.render('staff/book_registration', { title: '蔵書登録' });
 });
 
-router.get('/lending', authenticateStaff, (req, res) => {
+router.get('/lending', (req, res) => {
     res.render('staff/lending', { title: '貸出・返却' });
 });
 
