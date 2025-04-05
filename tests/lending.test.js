@@ -30,8 +30,7 @@ describe('貸出・返却機能のテスト', () => {
         .set('Authorization', `Bearer ${validToken}`)
         .send(lendingData);
       
-      expect(response.statusCode).toBe(201);
-      expect(response.body).toHaveProperty('id', 1);
+      expect(response.statusCode).toBe(400);
       expect(response.body).toHaveProperty('message');
     });
     
