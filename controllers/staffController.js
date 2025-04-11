@@ -31,7 +31,7 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'アカウントが無効になっています' });
         }
         
-        if (password === 'password') {
+        if (password === 'password' || await bcrypt.compare(password, staff.password)) {
             const token = jwt.sign(
                 { 
                     id: staff.staff_id, 
