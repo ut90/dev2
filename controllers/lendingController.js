@@ -7,7 +7,7 @@ exports.getAllLendings = async (req, res) => {
         const offset = (page - 1) * limit;
 
         let query = `
-            SELECT l.lending_id, l.user_id, l.book_id, l.lending_date, l.due_date, l.return_date,
+            SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date, l.return_date,
                    u.name as user_name, u.email as user_email,
                    b.book_id, bi.title, bi.isbn, a.name as author
             FROM lendings l
@@ -38,11 +38,11 @@ exports.getAllLendings = async (req, res) => {
             query += ` AND l.return_date IS NOT NULL`;
         }
 
-        const countQuery = query.replace('SELECT l.lending_id, l.user_id, l.book_id, l.lending_date, l.due_date, l.return_date, u.name as user_name, u.email as user_email, b.book_id, bi.title, bi.isbn, a.name as author', 'SELECT COUNT(*)');
+        const countQuery = query.replace('SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date, l.return_date, u.name as user_name, u.email as user_email, b.book_id, bi.title, bi.isbn, a.name as author', 'SELECT COUNT(*)');
         const countResult = await db.query(countQuery, params);
         const totalCount = parseInt(countResult.rows[0].count);
 
-        query += ` ORDER BY l.lending_date DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+        query += ` ORDER BY l.checkout_date DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
         params.push(limit, offset);
 
         const result = await db.query(query, params);
@@ -66,7 +66,7 @@ exports.getLendingById = async (req, res) => {
         const lendingId = req.params.id;
 
         const query = `
-            SELECT l.lending_id, l.user_id, l.book_id, l.lending_date, l.due_date, l.return_date,
+            SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date, l.return_date,
                    u.name as user_name, u.email as user_email,
                    b.book_id, bi.title, bi.isbn, a.name as author
             FROM lendings l
@@ -144,7 +144,7 @@ exports.createLending = async (req, res) => {
         }
 
         const lendingResult = await db.query(
-            `INSERT INTO lendings (user_id, book_id, lending_date, due_date)
+            `INSERT INTO lendings (user_id, book_id, checkout_date, due_date)
             VALUES ($1, $2, $3, $4) RETURNING lending_id`,
             [userId, bookId, lendingDate, dueDateObj]
         );
@@ -220,7 +220,7 @@ exports.getOverdueBooks = async (req, res) => {
         today.setHours(0, 0, 0, 0);
 
         const query = `
-            SELECT l.lending_id, l.user_id, l.book_id, l.lending_date, l.due_date,
+            SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date,
                    u.name as user_name, u.email as user_email,
                    b.book_id, bi.title, bi.isbn, a.name as author,
                    EXTRACT(DAY FROM (CURRENT_DATE - l.due_date)) as days_overdue
@@ -277,7 +277,7 @@ exports.getUserLendingHistory = async (req, res) => {
         }
 
         const query = `
-            SELECT l.lending_id, l.book_id, l.lending_date, l.due_date, l.return_date,
+            SELECT l.lending_id, l.book_id, l.checkout_date, l.due_date, l.return_date,
                    b.book_id, bi.title, bi.isbn, a.name as author,
                    CASE
                        WHEN l.return_date IS NULL AND l.due_date < CURRENT_DATE THEN '延滞中'
@@ -290,7 +290,7 @@ exports.getUserLendingHistory = async (req, res) => {
             LEFT JOIN book_authors ba ON bi.biblio_id = ba.biblio_id
             LEFT JOIN authors a ON ba.author_id = a.author_id
             WHERE l.user_id = $1
-            ORDER BY l.lending_date DESC
+            ORDER BY l.checkout_date DESC
             LIMIT $2 OFFSET $3
         `;
 
