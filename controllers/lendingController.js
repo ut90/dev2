@@ -246,14 +246,16 @@ exports.getOverdueBooks = async (req, res) => {
 
         const result = await db.query(query, [limit, offset]);
 
-        res.status(200).json({
-            overdueBooks: result.rows,
-            pagination: {
-                currentPage: parseInt(page),
-                totalPages: Math.ceil(totalCount / limit),
-                totalCount
-            }
-        });
+        const formattedOverdueBooks = result.rows.map(book => ({
+            lending_id: book.lending_id,
+            title: book.title,
+            userName: book.user_name,
+            checkoutDate: book.checkout_date,
+            dueDate: book.due_date,
+            daysOverdue: book.days_overdue
+        }));
+
+        res.status(200).json(formattedOverdueBooks);
     } catch (error) {
         console.error('延滞図書取得エラー:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
@@ -315,6 +317,53 @@ exports.getUserLendingHistory = async (req, res) => {
         });
     } catch (error) {
         console.error('貸出履歴取得エラー:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+};
+
+exports.getRecentLendings = async (req, res) => {
+    try {
+        const { page = 1 } = req.query;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        const query = `
+            SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date, l.return_date,
+                   u.name as user_name, u.email as user_email,
+                   b.book_id, bi.title, bi.isbn, a.name as author
+            FROM lendings l
+            JOIN users u ON l.user_id = u.user_id
+            JOIN books b ON l.book_id = b.book_id
+            JOIN bibliographic_info bi ON b.biblio_id = bi.biblio_id
+            LEFT JOIN book_authors ba ON bi.biblio_id = ba.biblio_id
+            LEFT JOIN authors a ON ba.author_id = a.author_id
+            WHERE l.return_date IS NULL
+            ORDER BY l.checkout_date DESC
+            LIMIT $1 OFFSET $2
+        `;
+
+        const countQuery = `
+            SELECT COUNT(*)
+            FROM lendings l
+            WHERE l.return_date IS NULL
+        `;
+
+        const countResult = await db.query(countQuery);
+        const totalCount = parseInt(countResult.rows[0].count);
+
+        const result = await db.query(query, [limit, offset]);
+
+        const formattedLendings = result.rows.map(lending => ({
+            lending_id: lending.lending_id,
+            title: lending.title,
+            userName: lending.user_name,
+            checkoutDate: lending.checkout_date,
+            dueDate: lending.due_date
+        }));
+
+        res.status(200).json(formattedLendings);
+    } catch (error) {
+        console.error('最近の貸出取得エラー:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 };
