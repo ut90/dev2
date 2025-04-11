@@ -223,7 +223,7 @@ exports.getOverdueBooks = async (req, res) => {
             SELECT l.lending_id, l.user_id, l.book_id, l.checkout_date, l.due_date,
                    u.name as user_name, u.email as user_email,
                    b.book_id, bi.title, bi.isbn, a.name as author,
-                   EXTRACT(DAY FROM (CURRENT_DATE - l.due_date)) as days_overdue
+                   (CURRENT_DATE - l.due_date) as days_overdue
             FROM lendings l
             JOIN users u ON l.user_id = u.user_id
             JOIN books b ON l.book_id = b.book_id
